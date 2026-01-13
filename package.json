@@ -1,0 +1,16 @@
+{
+  "name": "youtube-transcript-tool",
+  "version": "1.0.0",
+  "description": "Pull transcripts from YouTube channel uploads",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "single": "node single-video.js",
+    "diagnose": "node diagnose.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "youtube-transcript-plus": "^1.0.0"
+  }
+}

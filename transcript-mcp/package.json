@@ -1,0 +1,16 @@
+{
+  "name": "transcript-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for processing YouTube transcripts into blog posts",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "transcript-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0"
+  }
+}
