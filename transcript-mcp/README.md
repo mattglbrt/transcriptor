@@ -8,6 +8,7 @@ An MCP server that gives Claude Code tools to process YouTube transcripts into b
 |------|-------------|
 | `list_transcripts` | List all transcript files |
 | `read_transcript` | Read a specific transcript |
+| `get_formatting_guide` | Get instructions for processing transcripts |
 | `get_transcript_summary` | Get metadata and word count |
 | `save_blog_post` | Save processed content with frontmatter |
 | `list_blog_posts` | List saved blog posts |
@@ -75,17 +76,24 @@ After saving the config, restart VS Code or reload the Claude Code extension.
 
 Once configured, you can ask Claude Code things like:
 
+**Process a transcript into a blog post:**
+> "Read the formatting guide, then process the transcript 'My_Video_Title.md' into a polished blog post with proper paragraphs, headers, and tags."
+
 **List your transcripts:**
 > "What transcripts do I have available?"
 
-**Process a transcript into a blog post:**
-> "Read the transcript 'My_Video_Title.md' and turn it into a polished blog post. Extract appropriate categories and tags based on the content."
-
 **Batch processing:**
-> "List all my transcripts, then process each one into a blog post with proper frontmatter including title, description, categories, and tags."
+> "Get the formatting guide first, then process all my transcripts into blog posts."
 
 **Get summaries:**
 > "Give me a summary of all my transcripts including word counts"
+
+The `get_formatting_guide` tool provides Claude with detailed instructions on how to:
+- Break text into paragraphs
+- Add section headers
+- Clean up filler words and false starts
+- Preserve the author's voice
+- Choose appropriate categories and tags
 
 ## Blog Post Output Format
 

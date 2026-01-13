@@ -34,7 +34,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "list_transcripts",
-        description: "List all available transcript files in the transcripts directory",
+        description: "List all available transcript files in the transcripts directory. Before processing transcripts, use get_formatting_guide to learn how to properly format them.",
         inputSchema: {
           type: "object",
           properties: {},
@@ -43,7 +43,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "read_transcript",
-        description: "Read the full content of a specific transcript file",
+        description: "Read the full content of a specific transcript file. The transcript will be raw, unformatted text that needs to be cleaned up and structured into paragraphs, sections, and readable prose before saving as a blog post.",
         inputSchema: {
           type: "object",
           properties: {
@@ -56,8 +56,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "get_formatting_guide",
+        description: "Get the formatting guide for processing transcripts into blog posts. READ THIS BEFORE processing any transcripts.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
+      {
         name: "save_blog_post",
-        description: "Save a processed blog post to the blog-posts directory in Astro format with YouTube embed",
+        description: "Save a processed blog post to the blog-posts directory in Astro format with YouTube embed. The content should already be cleaned up and formatted with paragraphs, headers, and proper structure - NOT raw transcript text.",
         inputSchema: {
           type: "object",
           properties: {
@@ -161,6 +170,103 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: content,
+            },
+          ],
+        };
+      }
+
+      case "get_formatting_guide": {
+        const guide = `# Transcript to Blog Post Formatting Guide
+
+## Overview
+Raw YouTube transcripts are unstructured speech-to-text output. Your job is to transform them into polished, readable blog posts while preserving the author's voice and all information.
+
+## Content Processing Rules
+
+### 1. Paragraph Structure
+- Break the wall of text into logical paragraphs (3-5 sentences each)
+- Start a new paragraph when:
+  - The topic shifts
+  - There's a natural pause or transition ("So...", "Anyway...", "Now...")
+  - The speaker moves to a new step or concept
+
+### 2. Add Section Headers
+- Identify major topics or steps and add markdown headers (##, ###)
+- Use descriptive headers based on content, not generic ones
+- Good: "## Preparing the Miniature for Priming"
+- Bad: "## Section 1" or "## Next Steps"
+
+### 3. Clean Up Speech Patterns
+- Remove filler words: "um", "uh", "like", "you know", "basically"
+- Remove false starts: "I'm going to— what I mean is..."
+- Remove repetition unless it's for emphasis
+- Fix incomplete sentences
+- Keep the conversational tone but make it readable
+
+### 4. Preserve Voice & Personality
+- Keep the author's unique phrases and humor
+- Maintain their enthusiasm and personality
+- Don't make it sound robotic or overly formal
+- Keep casual language if that's their style
+
+### 5. Format Lists When Appropriate
+- If the speaker lists items or steps, format as a markdown list
+- Don't overuse lists - prose is often better for flow
+
+### 6. Technical Content
+- Keep all technical details accurate
+- Format product names, tools, and materials consistently
+- Add clarity where the speaker assumes visual context ("this" → describe what "this" is)
+
+## Frontmatter Guidelines
+
+### Title
+- Use the video title or create a clearer one based on content
+
+### Description  
+- Write a 1-2 sentence summary of what the reader will learn
+
+### Category
+Choose ONE that best fits:
+- "Tutorials" - How-to content, step-by-step guides
+- "Vlogs" - Personal updates, rambling, day-in-the-life
+- "Reviews" - Product or tool reviews
+- "Tips" - Quick tips and tricks
+- "Projects" - Project showcases or progress updates
+
+### Tags
+- Extract 5-10 relevant tags from the content
+- Include: techniques mentioned, tools used, materials, project names
+- Use lowercase, hyphenate multi-word tags
+- Always include the project name if mentioned
+
+### Project
+- Only include if the video is part of an ongoing project/series
+- Use lowercase with hyphens (e.g., "motley-crews")
+
+## Example Transformation
+
+### Before (raw transcript):
+"so um yeah we're gonna start with the base coat here and I'm using this yellow ochre from scale 75 it's really good paint um and you want to thin it down quite a bit like really thin like almost like a wash but not quite"
+
+### After (processed):
+"We're starting with the base coat using Yellow Ochre from Scale 75. This is a really good paint, and you'll want to thin it down significantly—almost to a wash consistency, but not quite that thin."
+
+## Final Checklist
+- [ ] Broke into logical paragraphs
+- [ ] Added descriptive section headers
+- [ ] Removed filler words and false starts
+- [ ] Preserved personality and voice
+- [ ] Fixed incomplete sentences
+- [ ] All technical details accurate
+- [ ] Frontmatter complete with appropriate tags
+`;
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: guide,
             },
           ],
         };
