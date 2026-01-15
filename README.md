@@ -10,6 +10,9 @@ npm start
 
 # Pull a single video transcript
 npm run single -- VIDEO_ID
+
+# Process new transcripts into blog posts (via Claude Code)
+# Just ask: "Process new transcripts into blog posts"
 ```
 
 ## Features
@@ -183,12 +186,33 @@ An MCP server that gives Claude Code tools to process YouTube transcripts into b
 
 | Tool | Description |
 |------|-------------|
-| `list_transcripts` | List all transcript files |
+| `list_transcripts` | List all transcript files (supports `unprocessed_only` filter) |
 | `read_transcript` | Read a specific transcript |
 | `get_transcript_summary` | Get metadata and word count |
-| `save_blog_post` | Save processed content with frontmatter |
+| `save_blog_post` | Save processed content with frontmatter (auto-updates processed log) |
 | `list_blog_posts` | List saved blog posts |
 | `read_blog_post` | Read an existing blog post |
+
+## Processing Log
+
+The system maintains a `processed.json` file that tracks which transcripts have been converted to blog posts. This prevents duplicate processing and lets you easily find new transcripts that need attention.
+
+```json
+{
+  "description": "Tracks which transcripts have been processed into blog posts",
+  "lastUpdated": "2026-01-15T13:03:11.186Z",
+  "totalTranscripts": 127,
+  "totalProcessed": 127,
+  "processed": {
+    "My_Video_Title.md": {
+      "blogPost": "my-video-title.mdx",
+      "processedAt": "2026-01-15T13:03:11.173Z"
+    }
+  }
+}
+```
+
+When you save a blog post via the MCP server with `sourceTranscript` specified, it automatically updates this log.
 
 ## Setup
 
@@ -252,14 +276,20 @@ After saving the config, restart VS Code or reload the Claude Code extension.
 
 Once configured, you can ask Claude Code things like:
 
-**List your transcripts:**
-> "What transcripts do I have available?"
+**Process new transcripts (recommended workflow):**
+> "Process new transcripts into blog posts"
 
-**Process a transcript into a blog post:**
-> "Read the transcript 'My_Video_Title.md' and turn it into a polished blog post. Extract appropriate categories and tags based on the content."
+This will:
+1. Check `processed.json` for unprocessed transcripts
+2. Read each new transcript
+3. Transform it into a formatted blog post
+4. Save and update the processing log
 
-**Batch processing:**
-> "List all my transcripts, then process each one into a blog post with proper frontmatter including title, description, categories, and tags."
+**List unprocessed transcripts:**
+> "What transcripts haven't been processed yet?"
+
+**Process a specific transcript:**
+> "Read the transcript 'My_Video_Title.md' and turn it into a polished blog post"
 
 **Get summaries:**
 > "Give me a summary of all my transcripts including word counts"
@@ -306,6 +336,7 @@ Your cleaned up transcript content here...
 |----------|---------|-------------|
 | `TRANSCRIPTS_DIR` | `./transcripts` | Where to read transcripts from |
 | `BLOG_OUTPUT_DIR` | `./blog-posts` | Where to save processed blog posts |
+| `PROCESSED_LOG` | `./processed.json` | Where to track processed transcripts |
 
 ## Troubleshooting
 

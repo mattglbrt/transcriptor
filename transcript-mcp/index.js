@@ -14,6 +14,34 @@ import path from "path";
 // Configure your paths here
 const TRANSCRIPTS_DIR = process.env.TRANSCRIPTS_DIR || "./transcripts";
 const BLOG_OUTPUT_DIR = process.env.BLOG_OUTPUT_DIR || "./blog-posts";
+const PROCESSED_LOG = process.env.PROCESSED_LOG || "./processed.json";
+
+/**
+ * Load the processed log
+ */
+async function loadProcessedLog() {
+  try {
+    const data = await fs.readFile(PROCESSED_LOG, "utf-8");
+    return JSON.parse(data);
+  } catch {
+    return {
+      description: "Tracks which transcripts have been processed into blog posts",
+      lastUpdated: new Date().toISOString(),
+      totalTranscripts: 0,
+      totalProcessed: 0,
+      processed: {}
+    };
+  }
+}
+
+/**
+ * Save the processed log
+ */
+async function saveProcessedLog(log) {
+  log.lastUpdated = new Date().toISOString();
+  log.totalProcessed = Object.keys(log.processed).length;
+  await fs.writeFile(PROCESSED_LOG, JSON.stringify(log, null, 2), "utf-8");
+}
 
 const server = new Server(
   {
@@ -37,7 +65,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: "List all available transcript files in the transcripts directory. Before processing transcripts, use get_formatting_guide to learn how to properly format them.",
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            unprocessed_only: {
+              type: "boolean",
+              description: "If true, only list transcripts that haven't been processed into blog posts yet",
+            },
+          },
           required: [],
         },
       },
@@ -77,6 +110,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             content: {
               type: "string",
               description: "The cleaned up transcript content (without frontmatter or headers)",
+            },
+            sourceTranscript: {
+              type: "string",
+              description: "The original transcript filename (e.g., 'My_Video.md') - used to update the processed log",
             },
             frontmatter: {
               type: "object",
@@ -145,8 +182,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "list_transcripts": {
         await fs.mkdir(TRANSCRIPTS_DIR, { recursive: true });
         const files = await fs.readdir(TRANSCRIPTS_DIR);
-        const transcripts = files.filter(f => f.endsWith(".md") && !f.startsWith("_"));
-        
+        let transcripts = files.filter(f => f.endsWith(".md") && !f.startsWith("_"));
+
+        // Filter to unprocessed only if requested
+        if (args.unprocessed_only) {
+          const log = await loadProcessedLog();
+          transcripts = transcripts.filter(t => !log.processed[t]);
+        }
+
         return {
           content: [
             {
@@ -154,6 +197,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: JSON.stringify({
                 directory: TRANSCRIPTS_DIR,
                 count: transcripts.length,
+                unprocessedOnly: args.unprocessed_only || false,
                 files: transcripts,
               }, null, 2),
             },
@@ -274,9 +318,9 @@ Choose ONE that best fits:
 
       case "save_blog_post": {
         await fs.mkdir(BLOG_OUTPUT_DIR, { recursive: true });
-        
+
         let finalContent = "";
-        
+
         // Add YAML frontmatter in Astro format
         if (args.frontmatter) {
           finalContent += "---\n";
@@ -299,25 +343,35 @@ Choose ONE that best fits:
           }
           finalContent += "---\n\n";
         }
-        
+
         // Add Astro YouTube component import and embed
         if (args.frontmatter?.youtubeId) {
           finalContent += "import YouTubeEmbed from '../../../components/YouTubeEmbed.astro';\n\n";
           finalContent += `<YouTubeEmbed videoId="${args.frontmatter.youtubeId}" title="${args.frontmatter.title || ''}" />\n\n`;
         }
-        
+
         // Add transcript header and content
         finalContent += "## Transcript\n\n";
         finalContent += args.content;
-        
+
         const filepath = path.join(BLOG_OUTPUT_DIR, args.filename);
         await fs.writeFile(filepath, finalContent, "utf-8");
-        
+
+        // Update the processed log if sourceTranscript is provided
+        if (args.sourceTranscript) {
+          const log = await loadProcessedLog();
+          log.processed[args.sourceTranscript] = {
+            blogPost: args.filename,
+            processedAt: new Date().toISOString()
+          };
+          await saveProcessedLog(log);
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `Blog post saved to: ${filepath}`,
+              text: `Blog post saved to: ${filepath}${args.sourceTranscript ? ` (logged as processed from ${args.sourceTranscript})` : ''}`,
             },
           ],
         };
