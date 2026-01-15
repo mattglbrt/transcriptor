@@ -2,6 +2,16 @@
 
 A Node.js tool to pull transcripts from your YouTube channel uploads.
 
+## Quick Start
+
+```bash
+# Pull new transcripts from your channel
+npm start
+
+# Pull a single video transcript
+npm run single -- VIDEO_ID
+```
+
 ## Features
 
 - Fetch all video uploads from your YouTube channel
