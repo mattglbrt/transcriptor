@@ -192,6 +192,8 @@ An MCP server that gives Claude Code tools to process YouTube transcripts into b
 | `save_blog_post` | Save processed content with frontmatter (auto-updates processed log) |
 | `list_blog_posts` | List saved blog posts |
 | `read_blog_post` | Read an existing blog post |
+| `get_description_guide` | Get YouTube description best practices guide |
+| `generate_description` | Generate optimized YouTube video description from transcript |
 
 ## Processing Log
 
@@ -294,6 +296,15 @@ This will:
 **Get summaries:**
 > "Give me a summary of all my transcripts including word counts"
 
+**Generate a YouTube description:**
+> "Generate a YouTube description for 'My_Video_Title.md'"
+
+This will create an SEO-optimized description with:
+- Compelling hook/summary at the top
+- Optional timestamps/chapters
+- Website link
+- Relevant hashtags
+
 ## Blog Post Output Format
 
 The `save_blog_post` tool creates `.mdx` files in your Astro blog format:
@@ -337,6 +348,7 @@ Your cleaned up transcript content here...
 | `TRANSCRIPTS_DIR` | `./transcripts` | Where to read transcripts from |
 | `BLOG_OUTPUT_DIR` | `./blog-posts` | Where to save processed blog posts |
 | `PROCESSED_LOG` | `./processed.json` | Where to track processed transcripts |
+| `DESCRIPTIONS_DIR` | `./descriptions` | Where to save generated YouTube descriptions |
 
 ## Troubleshooting
 

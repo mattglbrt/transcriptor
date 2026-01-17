@@ -15,6 +15,13 @@ import path from "path";
 const TRANSCRIPTS_DIR = process.env.TRANSCRIPTS_DIR || "./transcripts";
 const BLOG_OUTPUT_DIR = process.env.BLOG_OUTPUT_DIR || "./blog-posts";
 const PROCESSED_LOG = process.env.PROCESSED_LOG || "./processed.json";
+const DESCRIPTIONS_DIR = process.env.DESCRIPTIONS_DIR || "./descriptions";
+
+// Channel info for video descriptions
+const CHANNEL_INFO = {
+  website: "https://hobbynomicon.com",
+  channelName: "Hobby Nomicon",
+};
 
 /**
  * Load the processed log
@@ -167,6 +174,57 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
           },
           required: ["filename"],
+        },
+      },
+      {
+        name: "get_description_guide",
+        description: "Get the guide for creating optimized YouTube video descriptions. READ THIS BEFORE generating descriptions.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: "generate_description",
+        description: "Generate an optimized YouTube video description from a transcript. Returns the description text ready to copy-paste into YouTube.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sourceTranscript: {
+              type: "string",
+              description: "The transcript filename to generate a description from (e.g., 'My_Video.md')",
+            },
+            title: {
+              type: "string",
+              description: "The video title",
+            },
+            summary: {
+              type: "string",
+              description: "A 2-3 sentence summary of the video content (hook for viewers)",
+            },
+            timestamps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  time: { type: "string", description: "Timestamp in MM:SS or HH:MM:SS format" },
+                  label: { type: "string", description: "What happens at this timestamp" },
+                },
+              },
+              description: "Optional chapter timestamps for the video",
+            },
+            tags: {
+              type: "array",
+              items: { type: "string" },
+              description: "Relevant hashtags (without #) for the video",
+            },
+            save: {
+              type: "boolean",
+              description: "If true, save the description to a file in the descriptions directory",
+            },
+          },
+          required: ["sourceTranscript", "title", "summary"],
         },
       },
     ],
@@ -413,21 +471,21 @@ Choose ONE that best fits:
       case "get_transcript_summary": {
         const filepath = path.join(TRANSCRIPTS_DIR, args.filename);
         const content = await fs.readFile(filepath, "utf-8");
-        
+
         // Parse metadata from the markdown
         const lines = content.split("\n");
         const title = lines[0]?.replace(/^#\s*/, "") || "Unknown";
-        
+
         // Extract video ID and URL
         const videoIdMatch = content.match(/\*\*Video ID:\*\*\s*(\S+)/);
         const urlMatch = content.match(/\*\*URL:\*\*\s*\[.*?\]\((.*?)\)/);
         const publishedMatch = content.match(/\*\*Published:\*\*\s*(.+)/);
-        
+
         // Get transcript section
         const transcriptStart = content.indexOf("## Transcript");
         const transcript = transcriptStart !== -1 ? content.slice(transcriptStart) : "";
         const wordCount = transcript.split(/\s+/).filter(w => w.length > 0).length;
-        
+
         return {
           content: [
             {
@@ -441,6 +499,141 @@ Choose ONE that best fits:
                 wordCount: wordCount,
                 estimatedReadTime: `${Math.ceil(wordCount / 200)} min`,
               }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "get_description_guide": {
+        const guide = `# YouTube Description Best Practices Guide
+
+## Overview
+YouTube descriptions help with SEO, viewer engagement, and driving traffic to your other platforms. A well-structured description can significantly improve video discoverability.
+
+## Description Structure (Top to Bottom)
+
+### 1. Hook (First 150 characters) - CRITICAL
+- This appears in search results and above the "Show more" fold
+- Must be compelling and include primary keywords
+- Summarize the video's value proposition
+- Example: "Learn how to paint stunning NMM gold in under 30 minutes using just 3 colors. Perfect for beginners!"
+
+### 2. Video Summary (2-3 sentences)
+- Expand on what viewers will learn or experience
+- Include secondary keywords naturally
+- Keep it conversational and engaging
+
+### 3. Timestamps/Chapters (if applicable)
+- Format: 0:00 Introduction
+- YouTube auto-generates chapters from these
+- First timestamp MUST be 0:00
+- Improves watch time and user experience
+- Include 3-10 chapters for longer videos
+
+### 4. Links Section
+- Your website/blog post link
+- Related videos or playlists
+- Tools/products mentioned (affiliate links if applicable)
+
+### 5. About Section
+- Brief channel description
+- Upload schedule if consistent
+- Call to action (subscribe, like, comment)
+
+### 6. Hashtags (at the end)
+- Use 3-5 relevant hashtags
+- First 3 appear above video title
+- Mix broad (#miniaturepainting) and specific (#trenchcrusade)
+- Don't overuse - looks spammy
+
+## SEO Best Practices
+
+### Keywords
+- Include primary keyword in first 25 words
+- Use natural language, not keyword stuffing
+- Include variations (paint miniatures, miniature painting, painting minis)
+
+### Length
+- Aim for 200-350 words minimum
+- YouTube indexes up to 5000 characters
+- More text = more opportunities for keywords
+
+### What NOT to Do
+- Don't use ALL CAPS excessively
+- Don't stuff keywords unnaturally
+- Don't use misleading descriptions
+- Don't copy-paste the same description for every video
+
+## Channel Standard Links
+
+Always include at the end:
+---
+🌐 Website & Blog: ${CHANNEL_INFO.website}
+
+---
+
+## Hashtag Guidelines
+- Always include: #miniaturepainting #hobbypainting
+- Add game-specific: #warhammer #trenchcrusade #warmachine etc.
+- Add technique-specific: #nmm #wetblending #drybrushing etc.
+`;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: guide,
+            },
+          ],
+        };
+      }
+
+      case "generate_description": {
+        // Build the description
+        let description = "";
+
+        // Hook/Summary at the top
+        description += args.summary + "\n\n";
+
+        // Timestamps if provided
+        if (args.timestamps && args.timestamps.length > 0) {
+          description += "⏱️ TIMESTAMPS\n";
+          for (const ts of args.timestamps) {
+            description += `${ts.time} ${ts.label}\n`;
+          }
+          description += "\n";
+        }
+
+        // Links section
+        description += "---\n";
+        description += `🌐 Website & Blog: ${CHANNEL_INFO.website}\n`;
+        description += "---\n\n";
+
+        // Hashtags
+        if (args.tags && args.tags.length > 0) {
+          const hashtags = args.tags.map(t => `#${t.replace(/\s+/g, '').toLowerCase()}`).join(" ");
+          description += hashtags + "\n";
+        } else {
+          // Default hashtags
+          description += "#miniaturepainting #hobbypainting #tabletopgaming\n";
+        }
+
+        // Save to file if requested
+        let savedPath = null;
+        if (args.save) {
+          await fs.mkdir(DESCRIPTIONS_DIR, { recursive: true });
+          const filename = args.sourceTranscript.replace(".md", "_description.txt");
+          savedPath = path.join(DESCRIPTIONS_DIR, filename);
+          await fs.writeFile(savedPath, description, "utf-8");
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: savedPath
+                ? `Description saved to: ${savedPath}\n\n---\n\n${description}`
+                : description,
             },
           ],
         };

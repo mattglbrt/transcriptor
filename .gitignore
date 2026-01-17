@@ -6,8 +6,10 @@
 # Content (transcripts and generated blog posts)
 transcripts/
 blog-posts/
+descriptions/
 downloaded.json
 processed.json
+descriptions_processed.json
 _summary.json
 
 # Dependencies
