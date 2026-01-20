@@ -3,6 +3,12 @@
 .env.local
 .env.*.local
 
+# YouTube API credentials
+client_secret*.json
+youtube_tokens.json
+credentials/
+descriptions_pushed.json
+
 # Content (transcripts and generated blog posts)
 transcripts/
 blog-posts/
