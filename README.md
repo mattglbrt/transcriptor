@@ -371,3 +371,103 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node index.js
 ```
 
 You should see a JSON response listing the available tools.
+
+---
+
+# YouTube Description Pusher
+
+Push generated descriptions directly to your YouTube videos via the YouTube Data API.
+
+## Setup
+
+### 1. Create OAuth 2.0 Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project (same one with YouTube Data API enabled)
+3. Go to **APIs & Services** → **Credentials**
+4. Click **Create Credentials** → **OAuth client ID**
+5. Select **Desktop app** as the application type
+6. Download the JSON file
+
+### 2. Save Credentials
+
+Move the downloaded file to the `credentials/` folder:
+
+```bash
+mkdir -p credentials
+mv ~/Downloads/client_secret_*.json credentials/
+```
+
+### 3. Add Yourself as a Test User
+
+Since the OAuth app is in "Testing" mode:
+
+1. Go to **APIs & Services** → **OAuth consent screen**
+2. Scroll to **Test users**
+3. Click **Add Users**
+4. Enter the email address of your YouTube account
+5. Save
+
+### 4. Authenticate
+
+Run the auth script once to get your tokens:
+
+```bash
+node youtube-auth.cjs
+```
+
+This will:
+1. Open your browser for Google login
+2. Ask you to authorize the app
+3. Save tokens to `youtube_tokens.json`
+
+## Usage
+
+### List videos to update
+
+```bash
+node push-descriptions.cjs --list
+```
+
+### Preview changes (dry run)
+
+```bash
+node push-descriptions.cjs --dry-run
+```
+
+### Push a single video
+
+```bash
+node push-descriptions.cjs --video VIDEO_ID
+```
+
+### Push all descriptions
+
+```bash
+node push-descriptions.cjs
+```
+
+## How It Works
+
+1. Reads transcripts from `./transcripts/` to get video IDs
+2. Finds matching description files in `./descriptions/`
+3. Updates each video's description via YouTube API
+4. Logs pushed videos to `descriptions_pushed.json`
+
+## Files
+
+| File | Description |
+|------|-------------|
+| `youtube-auth.cjs` | One-time OAuth setup script |
+| `push-descriptions.cjs` | Main description pusher |
+| `credentials/` | OAuth client secret (gitignored) |
+| `youtube_tokens.json` | Access/refresh tokens (gitignored) |
+| `descriptions_pushed.json` | Log of pushed descriptions (gitignored) |
+
+## Security
+
+The following files are gitignored to protect your credentials:
+- `credentials/` - OAuth client secrets
+- `youtube_tokens.json` - Access tokens
+- `client_secret*.json` - Any client secrets in root
+- `.env` - Environment variables
