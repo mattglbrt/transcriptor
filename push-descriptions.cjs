@@ -243,7 +243,11 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
     } catch (err) {
-      console.error(`  Status: ERROR - ${err.message}\n`);
+      console.error(`  Status: ERROR - ${err.message}`);
+      if (err.response?.data?.error) {
+        console.error(`  Details: ${JSON.stringify(err.response.data.error, null, 2)}`);
+      }
+      console.error('');
       errorCount++;
     }
   }
