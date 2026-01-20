@@ -505,77 +505,83 @@ Choose ONE that best fits:
       }
 
       case "get_description_guide": {
-        const guide = `# YouTube Description Best Practices Guide
+        const guide = `# YouTube Description Best Practices Guide (2025)
 
 ## Overview
-YouTube descriptions help with SEO, viewer engagement, and driving traffic to your other platforms. A well-structured description can significantly improve video discoverability.
+Optimized YouTube descriptions should be 200-300 words, focusing on human readability, keyword-rich summaries, and clear, clickable links. Prioritize the first 100-200 characters for visibility, include timestamps for engagement, and use natural language rather than keyword stuffing to maximize searchability and viewer retention.
 
-## Description Structure (Top to Bottom)
+## The Critical First 100-200 Characters
 
-### 1. Hook (First 150 characters) - CRITICAL
-- This appears in search results and above the "Show more" fold
-- Must be compelling and include primary keywords
-- Summarize the video's value proposition
-- Example: "Learn how to paint stunning NMM gold in under 30 minutes using just 3 colors. Perfect for beginners!"
+This is the most important part of your description:
+- Only ~100-200 characters appear in search results and above the fold
+- Front-load your primary keywords here naturally
+- Make it compelling enough to encourage "Show more" clicks
+- Write for humans first, algorithms second
 
-### 2. Video Summary (2-3 sentences)
-- Expand on what viewers will learn or experience
-- Include secondary keywords naturally
-- Keep it conversational and engaging
+**Example:** "Learn miniature painting basics with this beginner-friendly NMM gold tutorial. I'll show you the exact 3-color technique I use for all my Warhammer minis."
 
-### 3. Timestamps/Chapters (if applicable)
+## Description Structure
+
+### 1. Compelling Summary (100-250 words)
+- Provide a clear, engaging overview of the video content
+- Write naturally—avoid robotic keyword lists
+- Include 2-3 targeted keywords woven into natural sentences
+- Explain what viewers will learn or experience
+- Keep paragraphs short and scannable
+
+### 2. Timestamps/Chapters (for videos 5+ minutes)
 - Format: 0:00 Introduction
-- YouTube auto-generates chapters from these
 - First timestamp MUST be 0:00
-- Improves watch time and user experience
-- Include 3-10 chapters for longer videos
+- YouTube auto-generates chapters from these
+- Significantly improves engagement and watch time
+- Include 3-8 meaningful chapter markers
 
-### 4. Links Section
-- Your website/blog post link
-- Related videos or playlists
-- Tools/products mentioned (affiliate links if applicable)
+### 3. Call-to-Action & Links
+- Include your website link prominently
+- Keep links clean and clickable (full URLs, properly formatted)
+- Don't bury important links at the bottom
 
-### 5. About Section
-- Brief channel description
-- Upload schedule if consistent
-- Call to action (subscribe, like, comment)
-
-### 6. Hashtags (at the end)
-- Use 3-5 relevant hashtags
-- First 3 appear above video title
-- Mix broad (#miniaturepainting) and specific (#trenchcrusade)
-- Don't overuse - looks spammy
-
-## SEO Best Practices
-
-### Keywords
-- Include primary keyword in first 25 words
-- Use natural language, not keyword stuffing
-- Include variations (paint miniatures, miniature painting, painting minis)
-
-### Length
-- Aim for 200-350 words minimum
-- YouTube indexes up to 5000 characters
-- More text = more opportunities for keywords
-
-### What NOT to Do
-- Don't use ALL CAPS excessively
-- Don't stuff keywords unnaturally
-- Don't use misleading descriptions
-- Don't copy-paste the same description for every video
-
-## Channel Standard Links
-
-Always include at the end:
+**Standard links:**
 ---
 🌐 Website & Blog: ${CHANNEL_INFO.website}
-
 ---
 
-## Hashtag Guidelines
-- Always include: #miniaturepainting #hobbypainting
-- Add game-specific: #warhammer #trenchcrusade #warmachine etc.
-- Add technique-specific: #nmm #wetblending #drybrushing etc.
+### 4. Hashtags (2-3 maximum)
+- Place at the very end of the description
+- Use only 2-3 highly relevant hashtags
+- First 3 hashtags appear above your video title
+- Mix one broad + one specific tag
+- Example: #miniaturepainting #trenchcrusade
+
+## Keyword Strategy
+
+### Do This:
+- Include primary keyword in first 25 words
+- Use natural sentence structures
+- Include keyword variations organically (miniature painting, painting miniatures, mini painting)
+- Write 2-3 keyword-rich sentences that actually read well
+
+### Avoid This:
+- Keyword stuffing or unnatural repetition
+- Lists of random keywords
+- Clickbait or misleading descriptions
+- Generic copy-paste descriptions
+- Excessive hashtags (more than 3 looks spammy)
+- ALL CAPS sections
+- Walls of text without breaks
+
+## Optimal Length
+- **Target: 200-300 words** (sweet spot for readability + SEO)
+- YouTube indexes up to 5000 characters but viewers won't read walls of text
+- Quality over quantity—every word should add value
+
+## Final Checklist
+- [ ] First 100-200 characters are compelling and keyword-rich
+- [ ] Summary is 100-250 words, naturally written
+- [ ] Timestamps included (if video is 5+ minutes)
+- [ ] Website link is prominent and clickable
+- [ ] Only 2-3 relevant hashtags at the end
+- [ ] Reads naturally—would you want to read this?
 `;
 
         return {
@@ -589,33 +595,35 @@ Always include at the end:
       }
 
       case "generate_description": {
-        // Build the description
+        // Build the description following 2025 best practices
         let description = "";
 
-        // Hook/Summary at the top
+        // Hook/Summary at the top (should be 100-250 words, keyword-rich)
         description += args.summary + "\n\n";
 
-        // Timestamps if provided
+        // Timestamps if provided (for videos 5+ minutes)
         if (args.timestamps && args.timestamps.length > 0) {
-          description += "⏱️ TIMESTAMPS\n";
+          description += "TIMESTAMPS\n";
           for (const ts of args.timestamps) {
             description += `${ts.time} ${ts.label}\n`;
           }
           description += "\n";
         }
 
-        // Links section
+        // Links section - prominent and clickable
         description += "---\n";
         description += `🌐 Website & Blog: ${CHANNEL_INFO.website}\n`;
         description += "---\n\n";
 
-        // Hashtags
+        // Hashtags - only 2-3, placed at the end
         if (args.tags && args.tags.length > 0) {
-          const hashtags = args.tags.map(t => `#${t.replace(/\s+/g, '').toLowerCase()}`).join(" ");
+          // Limit to 3 hashtags max per 2025 best practices
+          const limitedTags = args.tags.slice(0, 3);
+          const hashtags = limitedTags.map(t => `#${t.replace(/\s+/g, '').toLowerCase()}`).join(" ");
           description += hashtags + "\n";
         } else {
-          // Default hashtags
-          description += "#miniaturepainting #hobbypainting #tabletopgaming\n";
+          // Default to 2 hashtags (broad + specific)
+          description += "#miniaturepainting #hobbypainting\n";
         }
 
         // Save to file if requested
